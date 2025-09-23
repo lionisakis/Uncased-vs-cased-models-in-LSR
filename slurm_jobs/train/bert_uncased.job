@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu_a100
+#SBATCH --gpus=2
+#SBATCH --job-name=bert_uncased
+#SBATCH --time=24:00:00
+#SBATCH --output=./slurm_out/train/bert_uncased_%j.out
+
+#exit if an error occurs
+set -e
+
+module purge
+module load 2024
+module load Miniconda3/24.7.1-0
+module load CUDA/12.6.0/
+module load Java/21.0.2
+
+source activate splade
+
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+export SPLADE_CONFIG_NAME="config_bert_uncased.yaml"
+python3 -m splade.all
