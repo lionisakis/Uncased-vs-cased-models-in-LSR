@@ -17,6 +17,8 @@ module load Java/21.0.2
 
 source activate splade
 
+conda activate splade
+
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 export SPLADE_CONFIG_NAME="config_bert_uncased.yaml"
 python3 -m splade.all
