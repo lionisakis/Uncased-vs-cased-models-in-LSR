@@ -47,8 +47,8 @@ dependencies:
   - glib=2.69.1=h4ff587b_1
   - gmp=6.2.1=h2531618_2
   - gnutls=3.6.15=he1e5248_0
-  - google-auth
-  - google-auth-oauthlib
+  - google-auth==1.6.3
+  - google-auth-oauthlib==0.4.1
   - grpcio=1.42.0=py38hce63b2e_0
   - gst-plugins-base=1.14.0=h8213a91_2
   - gstreamer=1.14.0=h28cd5cc_2
@@ -192,8 +192,10 @@ dependencies:
       - onnxruntime==1.11.1
       - pandas==1.4.3
       - pathy==0.6.2
+      - pfzy==0.3.4
       - pip==25.0.1
       - preshed==3.0.6
+      - prompt-toolkit==3.0.52
       - psutil==5.9.1
       - pybind11==2.6.1
       - pydantic==1.8.2
@@ -231,4 +233,4 @@ dependencies:
       - urllib3==1.25.11
       - warcio==1.7.4
       - wasabi==0.9.1
-prefix: /home/scur0995/.conda/envs/splade
+      - wcwidth==0.2.14
