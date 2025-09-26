@@ -28,6 +28,7 @@ def retrieve_evaluate(exp_dict: DictConfig):
     for data_dir in set(exp_dict["data"]["Q_COLLECTION_PATH"]):
         q_collection = CollectionDatasetPreLoad(data_dir=data_dir, id_style="row_id")
         q_loader = CollectionDataLoader(dataset=q_collection, tokenizer_type=model_training_config["tokenizer_type"],
+                                        lowercase=config["lowercase"],
                                         max_length=model_training_config["max_length"], batch_size=batch_size,
                                         shuffle=False, num_workers=1)
         evaluator = SparseRetrieval(config=config, model=model, dataset_name=get_dataset_name(data_dir),

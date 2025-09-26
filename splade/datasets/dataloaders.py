@@ -10,8 +10,10 @@ from ..utils.utils import rename_keys
 
 
 class DataLoaderWrapper(DataLoader):
-    def __init__(self, tokenizer_type, max_length, **kwargs):
+    def __init__(self, tokenizer_type, max_length, lowercase=False, **kwargs):
         self.max_length = max_length
+        self.lowercase = lowercase
+        print("LOWERCASE:", lowercase)
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
         super().__init__(collate_fn=self.collate_fn, **kwargs, pin_memory=True)
 
@@ -29,6 +31,10 @@ class SiamesePairsDataLoader(DataLoaderWrapper):
         batch is a list of tuples, each tuple has 3 (text) items (q, d_pos, d_neg)
         """
         q, d_pos, d_neg = zip(*batch)
+        q = [s.lower() for s in q] if self.lowercase else q
+        d_pos = [s.lower() for s in d_pos] if self.lowercase else d_pos
+        d_neg = [s.lower() for s in d_neg] if self.lowercase else d_neg
+
         q = self.tokenizer(list(q),
                            add_special_tokens=True,
                            padding="longest",  # pad to max sequence length in batch
@@ -57,6 +63,9 @@ class DistilSiamesePairsDataLoader(DataLoaderWrapper):
         """
         """
         q, d_pos, d_neg, s_pos, s_neg = zip(*batch)
+        q = [s.lower() for s in q] if self.lowercase else q
+        d_pos = [s.lower() for s in d_pos] if self.lowercase else d_pos
+        d_neg = [s.lower() for s in d_neg] if self.lowercase else d_neg
         q = self.tokenizer(list(q),
                            add_special_tokens=True,
                            padding="longest",  # pad to max sequence length in batch
@@ -91,6 +100,7 @@ class CollectionDataLoader(DataLoaderWrapper):
         batch is a list of tuples, each tuple has 2 (text) items (id_, doc)
         """
         id_, d = zip(*batch)
+        d = [s.lower() for s in d] if self.lowercase else d
         processed_passage = self.tokenizer(list(d),
                                            add_special_tokens=True,
                                            padding="longest",  # pad to max sequence length in batch
@@ -110,6 +120,7 @@ class TextCollectionDataLoader(DataLoaderWrapper):
         batch is a list of tuples, each tuple has 2 (text) items (id_, doc)
         """
         id_, d = zip(*batch)
+        d = [s.lower() for s in d] if self.lowercase else d
         processed_passage = self.tokenizer(list(d),
                                            add_special_tokens=True,
                                            padding="longest",  # pad to max sequence length in batch
@@ -135,6 +146,8 @@ class EvalDataLoader(DataLoaderWrapper):
         batch is a list of tuples, each tuple has 4 (text) items (q_id, d_id, q, d)
         """
         q_id, d_id, q, d = zip(*batch)
+        q = [s.lower() for s in q] if self.lowercase else q
+        d = [s.lower() for s in d] if self.lowercase else d
         try:
             example = self.tokenizer(list(q), list(d),
                                     add_special_tokens=True,
@@ -169,6 +182,9 @@ class PairwiseRerankPromptDataloader(DataLoaderWrapper):
         batch is a list of tuples, each tuple has 4 (text) items (q_id, d_id, q, d)
         """
         q_id, d_id_1, d_id_2, q, d1, d2 = zip(*batch)
+        q = [s.lower() for s in q] if self.lowercase else q
+        d1 = [s.lower() for s in d1] if self.lowercase else d2
+        d2 = [s.lower() for s in d2] if self.lowercase else d2
         text = [self.prompt.format(query,doc1[:300], doc2[:300]) for query, doc1, doc2 in zip (q,d1,d2)]
         example = self.tokenizer(text,
                                  add_special_tokens=True,

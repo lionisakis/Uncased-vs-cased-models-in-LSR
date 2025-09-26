@@ -24,6 +24,7 @@ def index(exp_dict: DictConfig):
 
     d_collection = CollectionDatasetPreLoad(data_dir=exp_dict["data"]["COLLECTION_PATH"], id_style="row_id")
     d_loader = CollectionDataLoader(dataset=d_collection, tokenizer_type=model_training_config["tokenizer_type"],
+                                    lowercase=config["lowercase"],
                                     max_length=model_training_config["max_length"],
                                     batch_size=config["index_retrieve_batch_size"],
                                     shuffle=False, num_workers=10, prefetch_factor=4)

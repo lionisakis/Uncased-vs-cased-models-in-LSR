@@ -59,6 +59,8 @@ class TransformerTrainer(TrainerIter):
                 self.train_iterator = iter(self.train_loader)
                 batch = next(self.train_iterator)
 
+            regularization_losses = {}
+            
             with mpm.context():
                 for k, v in batch.items():
                     batch[k] = v.to(self.device)
@@ -68,7 +70,6 @@ class TransformerTrainer(TrainerIter):
                 # training moving average for logging
                 if self.regularizer is not None:
                     if "train" in self.regularizer:
-                        regularization_losses = {}
                         for reg in self.regularizer["train"]:
                             lambda_q = self.regularizer["train"][reg]["lambdas"]["lambda_q"].step() if "lambda_q" in \
                                                                                                        self.regularizer[
@@ -122,6 +123,7 @@ class TransformerTrainer(TrainerIter):
                 self.writer.add_scalar("batch_train_loss", loss.item(), i)
                 self.writer.add_scalar("moving_avg_ranking_loss", moving_avg_ranking_loss, i)
                 print("+batch_loss_iter{}: {}".format(i, round(loss.item(), 4)))
+                print("+batch_regularizer_iter{}: {}".format(i, regularization_losses))
                 if self.regularizer is not None:
                     if "train" in self.regularizer:
                         for reg_loss in regularization_losses:

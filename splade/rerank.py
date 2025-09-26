@@ -77,6 +77,7 @@ def test_reranker(exp_dict: DictConfig):
             loader = PairwiseRerankPromptDataloader(dataset=data, batch_size=config["eval_batch_size"],
                                     shuffle=False, num_workers=2,
                                     tokenizer_type=config["tokenizer_type"],
+                                    lowercase=config["lowercase"],
                                     max_length=config["max_length"],
                                     prompt=config["prompt"])
         else:
@@ -84,6 +85,7 @@ def test_reranker(exp_dict: DictConfig):
             loader = EvalDataLoader(dataset=data, batch_size=config["eval_batch_size"],
                                     shuffle=False, num_workers=2,
                                     tokenizer_type=config["tokenizer_type"],
+                                    lowercase=config["lowercase"],
                                     max_length=config["max_length"],
                                     return_token_type_ids=config.get("return_token_type_ids",False))
         if reranker_type == "PairwisePrompt":
