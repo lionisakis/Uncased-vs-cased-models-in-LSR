@@ -3,8 +3,7 @@ outputs
 data
 experiments
 slurm_out
-models
-!conf/train/models
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
