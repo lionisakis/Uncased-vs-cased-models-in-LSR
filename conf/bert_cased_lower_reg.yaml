@@ -3,7 +3,7 @@ defaults: # (these specify which config FILES to use)
   ############## TRAIN ###################################
   - train/config: splade
   - train/data: distil_from_bm25
-  - train/model: distil_bert_cased_uncased_uncased
+  - train/model: bert_cased_lower_reg
   ############## INDEX ###################################
   - index: msmarco
   ############## RETRIEVE ################################
@@ -21,6 +21,13 @@ config:
       T: 50000
       targeted_rep: rep
       reg: FLOPS
-  checkpoint_dir: models/distil_bert_cased_uncased_uncased/checkpoint
-  index_dir: models/distil_bert_cased_uncased_uncased/index
-  out_dir: models/distil_bert_cased_uncased_uncased/out
+    CASED:
+      lambda_q: 0.2
+      lambda_d: 0.2
+      T: 10000
+      targeted_rep: rep
+      reg: CASED
+      tokenizer: bert-base-cased
+  checkpoint_dir: models/bert_cased_lower_reg/checkpoint
+  index_dir: models/bert_cased_lower_reg/index
+  out_dir: models/bert_cased_lower_reg/out

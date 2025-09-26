@@ -131,7 +131,7 @@ class Splade(SiameseBase):
     """SPLADE model
     """
 
-    def __init__(self, model_type_or_dir, model_type_or_dir_q=None, freeze_d_model=False, agg="max", fp16=True):
+    def __init__(self, model_type_or_dir, model_type_or_dir_q=None, freeze_d_model=False, agg="max", fp16=True, tokenizer_name_or_obj=None, verbose = True):
         super().__init__(model_type_or_dir=model_type_or_dir,
                          output="MLM",
                          match="dot_product",
@@ -142,12 +142,49 @@ class Splade(SiameseBase):
         assert agg in ("sum", "max")
         self.agg = agg
 
+        self.cased_indices = None
+        if tokenizer_name_or_obj is not None:
+            if isinstance(tokenizer_name_or_obj, str):
+                tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_obj)
+            else:
+                tokenizer = tokenizer_name_or_obj
+            
+            vocab = tokenizer.get_vocab()  # {token: id}
+            
+            # Get all special tokens so we can exclude them
+            special_tokens = set(tokenizer.all_special_tokens)
+            
+            # Filter tokens: must have uppercase, but not be a special token
+            self.cased_tokens = [
+                (tok, idx)
+                for tok, idx in vocab.items()
+                if any(ch.isupper() for ch in tok) and tok not in special_tokens
+            ]
+            self.cased_indices = torch.tensor([idx for _, idx in self.cased_tokens], dtype=torch.long)
+            
+            if verbose:
+                print(f"[SPLADE CASED INDICES] Found {len(self.cased_tokens)} cased tokens.")
+                preview = ", ".join([f"{tok}:{idx}" for tok, idx in self.cased_tokens[:50]])
+                print(f"[SPLADE CASED INDICES] Example cased tokens: {preview}{' ...' if len(self.cased_tokens) > 50 else ''}")
+
+
     def encode(self, tokens, is_q):
         out = self.encode_(tokens, is_q)["logits"]  # shape (bs, pad_len, voc_size)
+        
+        logits = out 
+        
+        if self.cased_indices is not None:
+            logits[:, :, self.cased_indices] = 0
+
+        logits = torch.log(1 + torch.relu(logits))
+
+        if self.cased_indices is not None:
+            logits[:, :, self.cased_indices] = 0
+    
         if self.agg == "sum":
-            return torch.sum(torch.log(1 + torch.relu(out)) * tokens["attention_mask"].unsqueeze(-1), dim=1)
+            return torch.sum( logits * tokens["attention_mask"].unsqueeze(-1), dim=1)
         else:
-            values, _ = torch.max(torch.log(1 + torch.relu(out)) * tokens["attention_mask"].unsqueeze(-1), dim=1)
+            values, _ = torch.max(logits * tokens["attention_mask"].unsqueeze(-1), dim=1)
             return values
             # 0 masking also works with max because all activations are positive
 

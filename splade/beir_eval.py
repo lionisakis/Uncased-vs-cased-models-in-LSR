@@ -64,6 +64,7 @@ def retrieve(exp_dict: DictConfig):
 
     # Index BEIR collection
     d_loader = CollectionDataLoader(dataset=d_collection, tokenizer_type=model_training_config["tokenizer_type"],
+                                                           lowercase=config["lowercase"],
                                     max_length=model_training_config["max_length"], batch_size=batch_size_d,
                                     shuffle=False, num_workers=4)
     evaluator = SparseIndexing(model=model, config=config, compute_stats=True)
@@ -71,6 +72,7 @@ def retrieve(exp_dict: DictConfig):
 
     # Retrieve from BEIR collection
     q_loader = CollectionDataLoader(dataset=q_collection, tokenizer_type=model_training_config["tokenizer_type"],
+                                                           lowercase=config["lowercase"],
                                     max_length=model_training_config["max_length"], batch_size=batch_size_q,
                                     shuffle=False, num_workers=1)
     evaluator = SparseRetrieval(config=config, model=model, compute_stats=True, dim_voc=model.output_dim, is_beir=True)

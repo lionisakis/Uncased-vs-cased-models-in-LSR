@@ -76,7 +76,9 @@ def train(exp_dict: DictConfig):
             pass
         else:
             for reg in config["regularizer"]:
-                temp = {"loss": init_regularizer(config["regularizer"][reg]["reg"]),
+                sparsity_kwargs = {"tokenizer_name_or_obj": config["regularizer"][reg]["tokenizer_name_or_obj"]} if "tokenizer_name_or_obj" in config["regularizer"][reg] else {}
+
+                temp = {"loss": init_regularizer(config["regularizer"][reg]["reg"],**sparsity_kwargs),
                         "targeted_rep": config["regularizer"][reg]["targeted_rep"]}
                 d_ = {}
                 if "lambda_q" in config["regularizer"][reg]:
@@ -127,12 +129,14 @@ def train(exp_dict: DictConfig):
                                                      shuffle=False,
                                                      num_workers=4,
                                                      tokenizer_type=config["tokenizer_type"],
+                                                    lowercase=config["lowercase"],
                                                      max_length=config["max_length"], drop_last=drop_last)
         elif train_mode == "triplets_with_distil":
             val_loss_loader = DistilSiamesePairsDataLoader(dataset=data_val, batch_size=config["eval_batch_size"],
                                                            shuffle=False,
                                                            num_workers=4,
                                                            tokenizer_type=config["tokenizer_type"],
+                                                           lowercase=config["lowercase"],
                                                            max_length=config["max_length"], drop_last=drop_last)
         else:
             raise NotImplementedError
@@ -147,6 +151,7 @@ def train(exp_dict: DictConfig):
                                                     shuffle=True,
                                                     num_workers=4,
                                                     tokenizer_type=config["tokenizer_type"],
+                                                    lowercase=config["lowercase"],
                                                     max_length=config["max_length"], drop_last=drop_last)
     else:
         raise NotImplementedError
@@ -159,6 +164,7 @@ def train(exp_dict: DictConfig):
             data_dir=exp_dict["data"]["VALIDATION_FULL_RANKING"]["D_COLLECTION_PATH"], id_style="row_id")
         full_ranking_d_loader = CollectionDataLoader(dataset=full_ranking_d_collection,
                                                      tokenizer_type=config["tokenizer_type"],
+                                                     lowercase=config["lowercase"],
                                                      max_length=config["max_length"],
                                                      batch_size=config["eval_batch_size"],
                                                      shuffle=False, num_workers=4)
@@ -166,6 +172,7 @@ def train(exp_dict: DictConfig):
             data_dir=exp_dict["data"]["VALIDATION_FULL_RANKING"]["Q_COLLECTION_PATH"], id_style="row_id")
         full_ranking_q_loader = CollectionDataLoader(dataset=full_ranking_q_collection,
                                                      tokenizer_type=config["tokenizer_type"],
+                                                     lowercase=config["lowercase"],
                                                      max_length=config["max_length"], batch_size=1,
                                                      # TODO fix: bs currently set to 1
                                                      shuffle=False, num_workers=4)
@@ -181,6 +188,8 @@ def train(exp_dict: DictConfig):
     # #################################################################
     # # TRAIN
     # #################################################################
+    print("+++++ REGULARIZER +++++")
+    print(regularizer)
     print("+++++ BEGIN TRAINING +++++")
     trainer = SiameseTransformerTrainer(model=model, iterations=iterations, loss=loss, optimizer=optimizer,
                                         config=config, scheduler=scheduler,

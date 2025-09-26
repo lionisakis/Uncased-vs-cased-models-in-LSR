@@ -1,0 +1,14 @@
+# @package _global_
+init_dict:
+  model_type_or_dir: bert-base-cased
+  model_type_or_dir_q: null
+  freeze_d_model: 0
+  agg: max
+  fp16: true
+  tokenizer_name_or_obj: distilbert-base-cased
+
+config:
+  tokenizer_type: bert-base-cased
+  matching_type: splade
+  lowercase: True
+

@@ -2,9 +2,9 @@
 
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=2
-#SBATCH --job-name=all_splade
+#SBATCH --job-name=distilbert_uncased
 #SBATCH --time=24:00:00
-#SBATCH --output=./slurm_out/train/distil_uncased_%j.out
+#SBATCH --output=./slurm_out/train/distilbert_uncased_%j.out
 
 #exit if an error occurs
 set -e
@@ -18,5 +18,5 @@ module load Java/21.0.2
 source activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-export SPLADE_CONFIG_NAME="config_distilbert_uncased.yaml"
+export SPLADE_CONFIG_NAME="distilbert_uncased.yaml"
 python3 -m splade.all
