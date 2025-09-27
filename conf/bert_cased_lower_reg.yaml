@@ -27,7 +27,7 @@ config:
       T: 10000
       targeted_rep: rep
       reg: CASED
-      tokenizer: bert-base-cased
+      tokenizer_name_or_obj: bert-base-cased
   checkpoint_dir: models/bert_cased_lower_reg/checkpoint
   index_dir: models/bert_cased_lower_reg/index
   out_dir: models/bert_cased_lower_reg/out

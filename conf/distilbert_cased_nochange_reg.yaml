@@ -27,7 +27,7 @@ config:
       T: 10000
       targeted_rep: rep
       reg: CASED
-      tokenizer: distilbert-base-cased
+      tokenizer_name_or_obj: distilbert-base-cased
   checkpoint_dir: models/distilbert_cased_nochange_reg/checkpoint
   index_dir: models/distilbert_cased_nochange_reg/index
   out_dir: models/distilbert_cased_nochange_reg/out
