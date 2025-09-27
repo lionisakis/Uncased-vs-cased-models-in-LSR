@@ -115,14 +115,7 @@ class CasedRegularizer:
         # Select only the cased dimensions
         cased_activations = batch_rep.index_select(dim=-1, index=self.cased_indices.to(batch_rep.device))
         # L2 penalty per batch, then mean
-        penalty = torch.sum(cased_activations ** 2, dim=-1).mean()
-
-        # Apply schedule if provided
-        if self.weight_scheduler is not None:
-            w_t = self.weight_scheduler.step()
-            return w_t * penalty
-        else:
-            return penalty
+        return torch.sum(cased_activations ** 2, dim=-1).mean()
 
 
 def init_regularizer(reg, **kwargs):
