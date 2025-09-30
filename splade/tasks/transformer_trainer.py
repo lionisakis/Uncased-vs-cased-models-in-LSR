@@ -49,6 +49,8 @@ class TransformerTrainer(TrainerIter):
         mpm = amp.MixedPrecisionManager(self.fp16)
         self.optimizer.zero_grad()
 
+        print("self.start_iteration",self.start_iteration, "self.nb_iterations + 1", self.nb_iterations + 1)
+        i = None
         for i in tqdm(range(self.start_iteration, self.nb_iterations + 1)):
             self.model.train()  # train model
             # self.optimizer.zero_grad()
@@ -59,8 +61,6 @@ class TransformerTrainer(TrainerIter):
                 self.train_iterator = iter(self.train_loader)
                 batch = next(self.train_iterator)
 
-            regularization_losses = {}
-            
             with mpm.context():
                 for k, v in batch.items():
                     batch[k] = v.to(self.device)
@@ -70,6 +70,7 @@ class TransformerTrainer(TrainerIter):
                 # training moving average for logging
                 if self.regularizer is not None:
                     if "train" in self.regularizer:
+                        regularization_losses = {}
                         for reg in self.regularizer["train"]:
                             lambda_q = self.regularizer["train"][reg]["lambdas"]["lambda_q"].step() if "lambda_q" in \
                                                                                                        self.regularizer[
@@ -123,7 +124,6 @@ class TransformerTrainer(TrainerIter):
                 self.writer.add_scalar("batch_train_loss", loss.item(), i)
                 self.writer.add_scalar("moving_avg_ranking_loss", moving_avg_ranking_loss, i)
                 print("+batch_loss_iter{}: {}".format(i, round(loss.item(), 4)))
-                print("+batch_regularizer_iter{}: {}".format(i, regularization_losses))
                 if self.regularizer is not None:
                     if "train" in self.regularizer:
                         for reg_loss in regularization_losses:
@@ -173,6 +173,9 @@ class TransformerTrainer(TrainerIter):
                             pass
                 if not self.validation:
                     self.save_checkpoint(step=i, perf=loss, is_best=True)
+        if i == None:
+            i = self.nb_iterations + 1
+            loss = None
         if not self.validation:
             # when no validation, finally save the final model (last epoch)
             self.save_checkpoint(step=i, perf=loss, is_best=True)

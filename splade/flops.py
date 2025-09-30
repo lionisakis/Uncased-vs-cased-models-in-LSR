@@ -39,8 +39,7 @@ def flops(exp_dict: DictConfig):
     out_dim = model.output_dim
     # we estimate the FLOPS from a larger set of queries (the 100k dev queries)
     q_collection = CollectionDatasetPreLoad(data_dir=flops_queries, id_style="row_id")
-    q_loader = CollectionDataLoader(dataset=q_collection, tokenizer_type=model_training_config["tokenizer_type"],
-                                                           lowercase=config["lowercase"],
+    q_loader = CollectionDataLoader(dataset=q_collection, tokenizer_type=model_training_config["tokenizer_type"],lowercase=config["lowercase"],
                                     max_length=model_training_config["max_length"],
                                     batch_size=config["index_retrieve_batch_size"],
                                     shuffle=False, num_workers=1)

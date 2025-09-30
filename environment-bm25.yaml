@@ -1,0 +1,14 @@
+name: bm25
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9.18
+  - openjdk=11.0.20
+  - pip=23.3.1
+  - pip:
+      - python-terrier==0.13.1
+      - ir_measures==0.4.1
+      - ir_datasets==0.5.1
+      - terrier==0.2.1
+      - pyterrier==0.1.5
