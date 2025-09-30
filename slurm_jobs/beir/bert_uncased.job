@@ -21,8 +21,7 @@ conda activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 export SPLADE_CONFIG_NAME="bert_uncased.yaml"
-for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq
-# scidocs scifact trec-covid webis-touche2020 climate-fever dbpedia-entity fever hotpotqa nq
+for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact trec-covid climate-fever
 do
   python3 -m splade.beir_eval \
     +beir.dataset=$dataset \

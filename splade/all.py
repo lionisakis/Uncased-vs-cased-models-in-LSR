@@ -8,12 +8,15 @@ from .retrieve import retrieve_evaluate
 from .train import train
 from .utils.hydra import hydra_chdir
 from .utils.index_figure import index_figure
-
+import torch
 
 @hydra.main(config_path=CONFIG_PATH, config_name=CONFIG_NAME)
 def train_index_retrieve(exp_dict: DictConfig):
     hydra_chdir(exp_dict)
-
+    print("torch.cuda.is_available()",torch.cuda.is_available())
+    print("torch.cuda.device_count()",torch.cuda.device_count())
+    if not torch.cuda.is_available():
+        exit(-1)
     train(exp_dict)
     index(exp_dict)
     retrieve_evaluate(exp_dict)
