@@ -98,11 +98,10 @@ Or use the SLURM scripts in `slurm_jobs/bm25/`.
 
 ```
 .
-├── data/                 # Data folder (queries, docs, negatives, distillation sets)
 ├── slurm_jobs/           # SLURM job submission scripts
 │   ├── train/            # Training jobs
 │   ├── beir/             # BEIR evaluation jobs
-│   └── bm25/             # BM25 evaluation jobs
+│   └── bm25.job             # BM25 evaluation jobs
 ├── splade/               # Core SPLADE code
 ├── environment.yaml      # Conda environment for SPLADE
 ├── bm25_environment.yaml # Conda environment for BM25
