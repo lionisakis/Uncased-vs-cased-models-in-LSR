@@ -8,7 +8,6 @@ from .retrieve import retrieve_evaluate
 from .train import train
 from .utils.hydra import hydra_chdir
 from .utils.index_figure import index_figure
-from .confusion_matrix import confusion_matrix
 import torch
 
 @hydra.main(config_path=CONFIG_PATH, config_name=CONFIG_NAME)
