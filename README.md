@@ -66,9 +66,11 @@ conda activate splade
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 export SPLADE_CONFIG_FULLPATH={experiment.yaml}
 
-for dataset in arguana fiqa nfcorpus quora scidocs scifact trec-covid                webis-touche2020 climate-fever dbpedia-entity fever hotpotqa nq
+for dataset in arguana fiqa nfcorpus quora scidocs scifact trec-covid webis-touche2020 climate-fever dbpedia-entity fever hotpotqa nq
 do
-    python3 -m splade.beir_eval       +beir.dataset=$dataset       +beir.dataset_path=data/beir
+    python3 -m splade.beir_eval
+                +beir.dataset=$dataset
+                +beir.dataset_path=data/beir
 done
 ```
 
