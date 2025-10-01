@@ -18,7 +18,7 @@ module load Java/21.0.2
 source activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-export SPLADE_CONFIG_NAME="config_distilbert_uncased.yaml"
+export SPLADE_CONFIG_NAME="distilbert_uncased.yaml"
 for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact trec-covid climate-fever
 do
   python3 -m splade.beir_eval \

@@ -3,7 +3,7 @@
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
 #SBATCH --job-name=beir_distil_cased_lower
-#SBATCH --time=6:00:00
+#SBATCH --time=2:00:00
 #SBATCH --output=./slurm_out/beir/distil_cased_lower_%j.out
 
 #exit if an error occurs
@@ -18,8 +18,9 @@ module load Java/21.0.2
 source activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
-export SPLADE_CONFIG_NAME="config_distilbert_cased_lower_nochange.yaml"
-for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact trec-covid climate-fever
+export SPLADE_CONFIG_NAME="distilbert_cased_lower_nochange.yaml"
+for dataset in  climate-fever
+# arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact
 do
   python3 -m splade.beir_eval \
     +beir.dataset=$dataset \

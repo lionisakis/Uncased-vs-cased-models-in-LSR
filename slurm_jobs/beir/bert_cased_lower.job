@@ -3,7 +3,7 @@
 #SBATCH --partition=gpu_a100
 #SBATCH --gpus=1
 #SBATCH --job-name=beir_bert_cased_lower
-#SBATCH --time=6:00:00
+#SBATCH --time=3:00:00
 #SBATCH --output=./slurm_out/beir/bert_cased_lower_%j.out
 
 #exit if an error occurs
@@ -21,7 +21,8 @@ conda activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 export SPLADE_CONFIG_NAME="bert_cased_lower_nochange.yaml"
-for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact trec-covid climate-fever
+for dataset in nq scidocs scifact climate-fever
+# arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa 
 do
   python3 -m splade.beir_eval \
     +beir.dataset=$dataset \
