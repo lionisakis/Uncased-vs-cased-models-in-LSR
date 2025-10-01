@@ -3,10 +3,6 @@
 #SBATCH --job-name=bm25
 #SBATCH --time=24:00:00
 #SBATCH --output=./slurm_out/bm25_%j.out
-<<<<<<< HEAD
-=======
-#SBATCH --mem=128G
->>>>>>> d18b3b80207f81b7470594f6ec197465dd881ccf
 
 set -e
 
@@ -18,34 +14,8 @@ module load Miniconda3/24.7.1-0
 module load CUDA/12.6.0/
 module load Java/21.0.2
 
-<<<<<<< HEAD
-source activate splade
-
-echo "Running BM25 evaluations with PyTerrier..."
-
-# MS MARCO dev
-echo ">>> Evaluating BM25 on MSMARCO passage dev"
-python eval_bm25.py "irds:msmarco-passage/dev" "./index_msmarco"
-
-# TREC DL 2019
-echo ">>> Evaluating BM25 on TREC DL 2019"
-python eval_bm25.py "irds:msmarco-passage/trec-dl-2019" "./index_msmarco"
-
-# TREC DL 2020
-echo ">>> Evaluating BM25 on TREC DL 2020"
-python eval_bm25.py "irds:msmarco-passage/trec-dl-2020" "./index_msmarco"
-
-# BEIR datasets (you can add/remove as needed)
-for ds in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq; do
-  echo ">>> Evaluating BM25 on BEIR dataset: $ds"
-  python eval_bm25.py "irds:beir/${ds}/test" "./index_beir_${ds}"
-done
-
-echo "All evaluations complete!"
-=======
 source activate bm25
 
 echo "Running BM25 evaluations with PyTerrier..."
 
 python eval_bm25.py
->>>>>>> d18b3b80207f81b7470594f6ec197465dd881ccf
