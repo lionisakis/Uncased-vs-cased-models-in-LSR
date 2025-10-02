@@ -1,38 +1,5 @@
 import pyterrier as pt
 import os
-<<<<<<< HEAD
-import sys
-
-def eval_dataset(ds_name, index_path):
-    print(f"=== BM25 on {ds_name} ===")
-    ds = pt.get_dataset(ds_name)
-    indexer = pt.IterDictIndexer(index_path, overwrite=False)
-
-    if not os.path.exists(f"{index_path}/data.properties"):
-        index_ref = indexer.index(ds.get_corpus_iter(), fields=["text"])
-    else:
-        index_ref = pt.IndexRef.of(f"{index_path}/data.properties")
-
-    bm25 = pt.BatchRetrieve(index_ref, wmodel="BM25")
-    res = pt.Experiment(
-        [bm25],
-        ds.get_topics(),
-        ds.get_qrels(),
-        eval_metrics=["map", "ndcg_cut_10", "recall_100", "mrr"],
-        names=["BM25"]
-    )
-    print(res)
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python eval_bm25.py <dataset-name> <index-path>")
-        sys.exit(1)
-
-    dataset = sys.argv[1]
-    index_path = sys.argv[2] if len(sys.argv) > 2 else f"./index_{dataset.replace('/', '_')}"
-
-    eval_dataset(dataset, index_path)
-=======
 import json
 from ir_measures import MAP, NDCG, Recall, MRR
 import pandas as pd
@@ -135,12 +102,12 @@ if __name__ == "__main__":
 
     msmarco_index= "./models/bm25/index/msmarco"
     
-    # # MSMARCO dev
-    # msmarco_metrics = [
-    #     MRR@10,
-    #     Recall@5, Recall@10, Recall@15, Recall@20, Recall@30, Recall@100, Recall@200, Recall@500, Recall@1000,
-    # ]
-    # eval_dataset("irds:msmarco-passage/dev",msmarco_index, msmarco_metrics, out_path)
+    # MSMARCO dev
+    msmarco_metrics = [
+        MRR@10,
+        Recall@5, Recall@10, Recall@15, Recall@20, Recall@30, Recall@100, Recall@200, Recall@500, Recall@1000,
+    ]
+    eval_dataset("irds:msmarco-passage/dev",msmarco_index, msmarco_metrics, out_path)
 
     # TREC DL 2019
     trec_metrics = [
@@ -149,27 +116,26 @@ if __name__ == "__main__":
         NDCG@5, NDCG@10, NDCG@15, NDCG@20, NDCG@30, NDCG@100, NDCG@200, NDCG@500, NDCG@1000
     ]
 
-    # eval_dataset("irds:msmarco-passage/trec-dl-2019", msmarco_index, trec_metrics, out_path)
+    eval_dataset("irds:msmarco-passage/trec-dl-2019", msmarco_index, trec_metrics, out_path)
 
     # TREC DL 2020
-    # eval_dataset("irds:msmarco-passage/trec-dl-2020", msmarco_index, trec_metrics, out_path)
+    eval_dataset("irds:msmarco-passage/trec-dl-2020", msmarco_index, trec_metrics, out_path)
 
     # BEIR datasets
     beir_datasets = [
-        # "arguana", 
-        # "climate-fever", 
-        # "fiqa/test",
-        # "nfcorpus/test", 
-        # "quora/test", 
-        # "trec-covid",
-        # "webis-touche2020", 
-        # "dbpedia-entity/test", 
-        # "fever/test", 
-        # "hotpotqa/test", 
-        # "nq",
+        "arguana", 
+        "climate-fever", 
+        "fiqa/test",
+        "nfcorpus/test", 
+        "quora/test", 
+        "trec-covid",
+        "webis-touche2020", 
+        "dbpedia-entity/test", 
+        "fever/test", 
+        "hotpotqa/test", 
+        "nq",
         "scidocs",
-        # "scifact/test",  
+        "scifact/test",  
     ]
     for ds in beir_datasets:
         eval_dataset(f"irds:beir/{ds}", f"./models/bm25/index/{ds}", trec_metrics, out_path)
->>>>>>> d18b3b80207f81b7470594f6ec197465dd881ccf
