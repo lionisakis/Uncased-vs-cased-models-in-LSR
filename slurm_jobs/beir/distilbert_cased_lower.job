@@ -19,8 +19,7 @@ source activate splade
 
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 export SPLADE_CONFIG_NAME="distilbert_cased_lower_nochange.yaml"
-for dataset in  climate-fever
-# arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact
+for dataset in arguana fiqa nfcorpus quora trec-covid webis-touche2020 dbpedia-entity fever hotpotqa nq scidocs scifact climate-fever
 do
   python3 -m splade.beir_eval \
     +beir.dataset=$dataset \
