@@ -188,6 +188,27 @@ class Splade(SiameseBase):
             return values
             # 0 masking also works with max because all activations are positive
 
+    def encode_tokens(self, tokens, is_q):
+        """
+        Return per-token sparse activations (no pooling).
+        Shape: (bs, seq_len, vocab_size)
+        """
+        clean_tokens = {k: v for k, v in tokens.items() if k in ["input_ids", "attention_mask", "token_type_ids"]}
+    
+        out = self.encode_(clean_tokens, is_q)["logits"]
+
+        logits = out
+        if self.cased_indices is not None:
+            logits[:, :, self.cased_indices] = 0
+
+        logits = torch.log(1 + torch.relu(logits))
+
+        if self.cased_indices is not None:
+            logits[:, :, self.cased_indices] = 0
+
+        return logits
+
+
 
 class SpladeDoc(SiameseBase):
     """SPLADE without query encoder

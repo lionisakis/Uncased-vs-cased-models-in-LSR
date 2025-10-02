@@ -28,6 +28,6 @@ config:
       targeted_rep: rep
       reg: CASED
       tokenizer_name_or_obj: bert-base-cased
-  checkpoint_dir: models/bert_cased_nochange_reg/checkpoint
-  index_dir: models/bert_cased_nochange_reg/index
-  out_dir: models/bert_cased_nochange_reg/out
+  checkpoint_dir: models/bert_cased_nochange_reg_2/checkpoint
+  index_dir: models/bert_cased_nochange_reg_2/index
+  out_dir: models/bert_cased_nochange_reg_2/out
