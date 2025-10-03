@@ -21,6 +21,6 @@ config:
       T: 50000
       targeted_rep: rep
       reg: FLOPS
-  checkpoint_dir: models/bert_cased_nochange_uncased_2/checkpoint
-  index_dir: models/bert_cased_nochange_uncased_2/index
-  out_dir: models/bert_cased_nochange_uncased_2/out
+  checkpoint_dir: models/bert_cased_nochange_uncased/checkpoint
+  index_dir: models/bert_cased_nochange_uncased/index
+  out_dir: models/bert_cased_nochange_uncased/out
