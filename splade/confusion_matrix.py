@@ -15,6 +15,7 @@ from .models.models_utils import get_model
 from .tasks.transformer_evaluator import SparseIndexing
 from .utils.utils import get_initialize_config
 import math
+from pathlib import Path
 
 
 def build_casing_map(vocab_size, tokenizer, lowercase):
@@ -70,25 +71,22 @@ def compute_confusion_matrix(loader, model, tokenizer, casing_map, device, is_qu
 
 
 def plot_confusion_matrix(confusion_dict, out_path, labels=["Cased", "Uncased"], main_title="Casing Confusion Matrices"):
-    """
-    Plot multiple confusion matrices in a single figure with 2 columns and dynamic rows.
-    
-    Args:
-        confusion_dict (dict): {name: confusion_matrix (2x2 numpy array)}
-        out_path (str): path to save the figure
-        labels (list): labels for x and y axes
-        main_title (str): overall title for the figure
-    """
+    import matplotlib.pyplot as plt
+    import math
+    import numpy as np
+
     num_matrices = len(confusion_dict)
     ncols = 2
     nrows = math.ceil(num_matrices / ncols)
 
-    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 5, nrows * 5))
-    axes = np.array(axes).reshape(-1)  # flatten in case of 1 row/col
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(ncols * 6, nrows * 5))
+    axes = np.array(axes).reshape(-1)  # flatten axes
 
     for idx, (name, cm) in enumerate(confusion_dict.items()):
         ax = axes[idx]
-        im = ax.imshow(cm, cmap="Blues")
+
+        # Use raw counts
+        im = ax.imshow(cm, cmap="viridis")
 
         ax.set_xticks(np.arange(len(labels)))
         ax.set_yticks(np.arange(len(labels)))
@@ -96,24 +94,32 @@ def plot_confusion_matrix(confusion_dict, out_path, labels=["Cased", "Uncased"],
         ax.set_yticklabels(labels)
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
-        # overlay numbers
+        # Overlay numbers with dynamic color based on background
+        norm = plt.Normalize(vmin=cm.min(), vmax=cm.max())
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
-                ax.text(j, i, f"{cm[i, j]}", ha="center", va="center", color="black", fontsize=12, fontweight="bold")
+                color_val = im.cmap(norm(cm[i, j]))  # returns RGBA tuple
+                # compute luminance for color contrast
+                luminance = 0.299*color_val[0] + 0.587*color_val[1] + 0.114*color_val[2]
+                text_color = "white" if luminance < 0.5 else "black"
+                ax.text(j, i, f"{cm[i, j]:,}", ha="center", va="center", color=text_color, fontsize=12, fontweight="bold")
 
-        ax.set_xlabel("Output Casing (Sparse Representation)")
-        ax.set_ylabel("Input Casing (Tokenized Text)")
-        ax.set_title(f"{name}", fontsize=14)
+        ax.set_xlabel("Output Casing")
+        ax.set_ylabel("Input Casing")
+        ax.set_title(name, fontsize=12)
 
-    # Hide any unused subplots
+        # Add colorbar
+        cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+        cbar.set_label("Count")
+
+    # Hide unused axes
     for i in range(idx + 1, nrows * ncols):
         fig.delaxes(axes[i])
 
     fig.suptitle(main_title, fontsize=16, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.95])
-    plt.savefig(out_path, dpi=200)
+    plt.savefig(out_path, format=out_path.split(".")[-1])
     plt.close(fig)
-
 
 
 @hydra.main(config_path=CONFIG_PATH, config_name=CONFIG_NAME)
@@ -152,21 +158,26 @@ def confusion_matrix(exp_dict: DictConfig):
     )
 
     print("ENCODE TEXTS INTO SPARSE REPRESENTATION")
-    # confusion = compute_confusion_matrix(q_loader, model, tokenizer, casing_map, device)
+    confusion = compute_confusion_matrix(q_loader, model, tokenizer, casing_map, device)
 
     # Save JSON
     out_dir = exp_dict.config.out_dir
-    # os.makedirs(out_dir, exist_ok=True)
-    # json_path = os.path.join(out_dir, "confusion_matrix.json")
-    # with open(json_path, "w") as f:
-    #     json.dump({"confusion_matrix": confusion.tolist()}, f)
-    # print(f"Confusion matrix saved to {json_path}")
+    os.makedirs(out_dir, exist_ok=True)
+    json_path = os.path.join(out_dir, "confusion_matrix.json")
+    with open(json_path, "w") as f:
+        json.dump({"confusion_matrix": confusion.tolist()}, f)
+    print(f"Confusion matrix saved to {json_path}")
 
     # Save PNG
-    img_path = os.path.join(out_dir, "confusion_matrix.png")
+
+    Path("./figures").mkdir(parents=True, exist_ok=True)
+    img_path = os.path.join("./figures", "confusion_matrix.png")
     dictionary_of_confusion_matrix = {
-        "Bert Cased no-preprocessing no-postprocessing": np.array([[3553950, 14216134],
-                                                  [278552157, 11844734578]])
+        "BERT Cased\nno-preprocessing no-postprocessing": np.array([[3553950, 14216134],
+                                                  [278552157, 11844734578]]),
+        "BERT Cased\nlowering no-postprocessing": np.array([[0, 0], [10917, 2131726362]]),
+        "DistilBERT Cased\n no-preprocessing no-postprocessing": np.array([[1873723, 3650751], [116346609, 1127083068]]),
+        "DistilBERT Cased\n lowering no-postprocessing": np.array([[0, 0], [1685, 1247906739]])
     }
     
     plot_confusion_matrix(dictionary_of_confusion_matrix, img_path)
