@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from omegaconf import DictConfig
 from transformers import AutoTokenizer
+import math
+from pathlib import Path
 
 from conf.CONFIG_CHOICE import CONFIG_NAME, CONFIG_PATH
 from .datasets.dataloaders import CollectionDataLoader
@@ -14,8 +16,6 @@ from .datasets.datasets import CollectionDatasetPreLoad
 from .models.models_utils import get_model
 from .tasks.transformer_evaluator import SparseIndexing
 from .utils.utils import get_initialize_config
-import math
-from pathlib import Path
 
 
 def build_casing_map(vocab_size, tokenizer, lowercase):
@@ -34,18 +34,17 @@ def build_casing_map(vocab_size, tokenizer, lowercase):
     return casing_map
 
 
-def compute_confusion_matrix(loader, model, tokenizer, casing_map, device, is_query=True):
+def compute_confusion_matrix(loader, model, tokenizer, casing_map, device, is_query=True, max_print=0):
     """
     Compute the 2x2 casing confusion matrix.
+    Optionally collect and print some unique cased OUTPUT tokens if max_print > 0.
     """
     cm = np.zeros((2, 2), dtype=int)
+    collected_tokens = set()   # store unique cased OUTPUT tokens
 
     for batch in tqdm(loader, desc="Processing batches"):
         batch = {k: v.to(device) for k, v in batch.items() if isinstance(v, torch.Tensor)}
 
-        # get per-token logits before aggregation
-        # the encode() call inside Splade does log(1+relu()) and aggregation
-        # but here we want *token-level logits* → use encode_ directly
         with torch.no_grad():
             logits = model.encode_tokens(batch, is_q=True)  # (bs, seq_len, vocab_size)
 
@@ -66,15 +65,25 @@ def compute_confusion_matrix(loader, model, tokenizer, casing_map, device, is_qu
                 cm[input_type, 0] += cased_count
                 cm[input_type, 1] += uncased_count
 
+                # Collect unique cased OUTPUT tokens
+                if max_print > 0:
+                    for out_id in activated_ids:
+                        if casing_map[out_id] == 0:  # only cased outputs
+                            token = tokenizer.convert_ids_to_tokens(int(out_id))
+                            if token not in tokenizer.all_special_tokens:
+                                collected_tokens.add(token)
+
+    # Print after full pass
+    if max_print > 0 and collected_tokens:
+        print(f"\nUnique cased OUTPUT tokens found: {len(collected_tokens)}")
+        print(f"Showing up to {max_print}:")
+        for tok in list(collected_tokens)[:max_print]:
+            print(f"  {tok}")
 
     return cm
 
 
 def plot_confusion_matrix(confusion_dict, out_path, labels=["Cased", "Uncased"], main_title="Casing Confusion Matrices"):
-    import matplotlib.pyplot as plt
-    import math
-    import numpy as np
-
     num_matrices = len(confusion_dict)
     ncols = 2
     nrows = math.ceil(num_matrices / ncols)
@@ -126,58 +135,58 @@ def plot_confusion_matrix(confusion_dict, out_path, labels=["Cased", "Uncased"],
 def confusion_matrix(exp_dict: DictConfig):
     # Init configs
     exp_dict, config, init_dict, model_training_config = get_initialize_config(exp_dict)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_training_config["tokenizer_type"],
-        use_fast=True
-    )
-    lowercase = config["lowercase"]
+    # # Tokenizer
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     model_training_config["tokenizer_type"],
+    #     use_fast=True
+    # )
+    # lowercase = config["lowercase"]
 
-    # Build casing map
-    casing_map = build_casing_map(tokenizer.vocab_size, tokenizer, lowercase)
+    # # Build casing map
+    # casing_map = build_casing_map(tokenizer.vocab_size, tokenizer, lowercase)
 
-    # Model
-    model = get_model(config, init_dict).to(device)
-    model.eval()
+    # # Model
+    # model = get_model(config, init_dict).to(device)
+    # model.eval()
 
-    # Queries/documents dataset
-    q_collection = CollectionDatasetPreLoad(
-        data_dir=exp_dict["data"]["flops_queries"],
-        id_style="row_id"
-    )
-    q_loader = CollectionDataLoader(
-        dataset=q_collection,
-        tokenizer_type=model_training_config["tokenizer_type"],
-        lowercase=lowercase,
-        max_length=model_training_config["max_length"],
-        batch_size=config["index_retrieve_batch_size"],
-        shuffle=False,
-        num_workers=1
-    )
+    # # Queries/documents dataset
+    # q_collection = CollectionDatasetPreLoad(
+    #     data_dir=exp_dict["data"]["flops_queries"],
+    #     id_style="row_id"
+    # )
+    # q_loader = CollectionDataLoader(
+    #     dataset=q_collection,
+    #     tokenizer_type=model_training_config["tokenizer_type"],
+    #     lowercase=lowercase,
+    #     max_length=model_training_config["max_length"],
+    #     batch_size=config["index_retrieve_batch_size"],
+    #     shuffle=False,
+    #     num_workers=1
+    # )
 
-    print("ENCODE TEXTS INTO SPARSE REPRESENTATION")
-    confusion = compute_confusion_matrix(q_loader, model, tokenizer, casing_map, device)
+    # print("ENCODE TEXTS INTO SPARSE REPRESENTATION")
+    # confusion = compute_confusion_matrix(q_loader, model, tokenizer, casing_map, device)
 
-    # Save JSON
-    out_dir = exp_dict.config.out_dir
-    os.makedirs(out_dir, exist_ok=True)
-    json_path = os.path.join(out_dir, "confusion_matrix.json")
-    with open(json_path, "w") as f:
-        json.dump({"confusion_matrix": confusion.tolist()}, f)
-    print(f"Confusion matrix saved to {json_path}")
+    # # Save JSON
+    # out_dir = exp_dict.config.out_dir
+    # os.makedirs(out_dir, exist_ok=True)
+    # json_path = os.path.join(out_dir, "confusion_matrix.json")
+    # with open(json_path, "w") as f:
+    #     json.dump({"confusion_matrix": confusion.tolist()}, f)
+    # print(f"Confusion matrix saved to {json_path}")
 
     # Save PNG
 
     Path("./figures").mkdir(parents=True, exist_ok=True)
     img_path = os.path.join("./figures", "confusion_matrix.png")
     dictionary_of_confusion_matrix = {
-        "BERT Cased\nno-preprocessing no-postprocessing": np.array([[3553950, 14216134],
+        "SPLADE-BERT Cased\nno-preprocessing no-postprocessing": np.array([[3553950, 14216134],
                                                   [278552157, 11844734578]]),
-        "BERT Cased\nlowering no-postprocessing": np.array([[0, 0], [10917, 2131726362]]),
-        "DistilBERT Cased\n no-preprocessing no-postprocessing": np.array([[1873723, 3650751], [116346609, 1127083068]]),
-        "DistilBERT Cased\n lowering no-postprocessing": np.array([[0, 0], [1685, 1247906739]])
+        "SPLADE-BERT Cased\nlowering no-postprocessing": np.array([[0, 0], [10917, 2131726362]]),
+        "SPLADE-DistilBERT Cased\n no-preprocessing no-postprocessing": np.array([[1873723, 3650751], [116346609, 1127083068]]),
+        "SPLADE-DistilBERT Cased\n lowering no-postprocessing": np.array([[0, 0], [1685, 1247906739]])
     }
     
     plot_confusion_matrix(dictionary_of_confusion_matrix, img_path)
